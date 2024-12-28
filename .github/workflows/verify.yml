@@ -24,11 +24,13 @@ on:
         type: boolean
         default: false
 
+# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
 permissions:
   contents: read
   pages: write
   id-token: write
 
+# Allow one concurrent deployment
 concurrency:
   group: ${{ github.head_ref || 'x' }}-${{ github.workflow }}-${{ github.ref }}-verify
   cancel-in-progress: true
@@ -72,7 +74,7 @@ jobs:
         uses: competitive-verifier/actions/upload-verify-artifact@v2
         with:
           file: verify_files.json
-          artifact-name: ${{ runner.os }}-verify-files${{ matrix.type == 'all' && '-' || matrix.type }}json
+          artifact-name: ${{ runner.os }}-verify-files-${{ matrix.type }}-json
 
       - name: Check bundled
         id: test-bundled
@@ -95,7 +97,6 @@ jobs:
     strategy:
       max-parallel: 16
       matrix:
-        # prettier-ignore
         type: ["normal", "huge"]
         index:
           ["00", "01", "02", "03", "04", "05", "06", "07",
@@ -118,53 +119,17 @@ jobs:
       - name: Download verify_files.json
         uses: competitive-verifier/actions/download-verify-artifact@v2
         with:
-          artifact-name: ${{ runner.os }}-verify-files${{ matrix.type }}json
+          artifact-name: ${{ runner.os }}-verify-files-${{ matrix.type }}-json
 
       - name: Set up competitive-verifier
         uses: competitive-verifier/actions/setup@v2
         with:
           cache-pip: true
 
-      - name: Get storage information before cleaning up
-        run: |
-          echo "::group::free"
-          free
-          echo "::endgroup::"
-          echo "::group::swapon"
-          swapon
-          echo "::endgroup::"
-          echo "::group::df"
-          df -ha --o --total
-          echo "::endgroup::"
-          echo "::group::du"
-          du -ha | sort -hr
-          echo "::endgroup::"
-
-      - name: Clean up
-        run: |
-          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL
-          sudo docker image prune --all --force
-          sudo docker builder prune -a
-
-      - name: Get storage information before cleaning up
-        run: |
-          echo "::group::free"
-          free
-          echo "::endgroup::"
-          echo "::group::swapon"
-          swapon
-          echo "::endgroup::"
-          echo "::group::df"
-          df -ha --o --total
-          echo "::endgroup::"
-          echo "::group::du"
-          du -ha | sort -hr
-          echo "::endgroup::"
-
       - name: Verify
         uses: competitive-verifier/actions/verify@v2
         with:
-          destination: ${{runner.temp}}/result.json
+          destination: ${{runner.temp}}/result-${{matrix.type}}.json
           split-size: ${{ env.SPLIT_SIZE }}
           split-index: ${{ matrix.index }}
           timeout: 1800
