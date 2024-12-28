@@ -47,6 +47,7 @@ jobs:
       - name: Set up competitive-verifier
         uses: competitive-verifier/actions/setup@v2
         with:
+          package: competitive-verifier==3.3.0.dev0 
           cache-pip: true
 
       - name: oj-resolve
@@ -123,6 +124,7 @@ jobs:
       - name: Set up competitive-verifier
         uses: competitive-verifier/actions/setup@v2
         with:
+          package: competitive-verifier==3.3.0.dev0 
           cache-pip: true
 
       - name: Verify
